@@ -2,14 +2,64 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="/socket.io/socket.io.js" defer></script>
-    <script src="client.js" defer></script>
+    <script src="/client.js" defer></script>
     <title>Document</title>
 </head>
 <body>
-    <h1>Hello World!</h1>
+<h1>App de sondage</h1>
+
+<div id="infos" style="display: none">
+    Votre pseudo: <span id="your_pseudo"></span>
+    <br />
+    En ligne: <span id="nb_users"></span>
+    <hr />
+    <br />
+</div>
+
+<div id="pseudo_form">
+    <label for="pseudo_input">Renseigner un pseudo</label>
+    <input type="text" id="pseudo_input" />
+    
+    <button type="button" id="pseudo_btn">Valider</button>
+</div>
+
+<div id="list" style="display: none;"></div>
+
+<div id="create_form" style="display: none">
+    <br />
+    <hr />
+    <label for="new_sondage_input">Créer un sondage</label>
+    <input type="text" id="new_sondage_input">
+    <button type="button" id="new_sondage_btn">Créer</button>
+</div>
+
+
+<div id="sondage_container" style="display: none">
+    <button type="button" id="back_btn">Retour à la liste</button>
+    <div id="sondage_name"></div>
+    <br />
+    Utilisateurs dans le sondage:
+    <div id="sondage_players"></div>
+
+    <br />
+
+    <div id="sondage_content">
+        <div id="organisateur_form" style="display: none">
+            <label for="organisateur_question">Question:</label>
+            <input type="text" id="organisateur_question">
+            <br />
+            <label for="reponse_1_input">Réponse possible 1</label><input type="text" id="reponse_1_input">
+            <label for="reponse_2_input">Réponse possible 2</label><input type="text" id="reponse_2_input">
+            <br />
+
+            <button type="button" id="organisateur_btn">Valider</button>
+        </div>
+    </div>
+
+    <div id="sondage_resultats" style="display: none"></div>
+</div>
 </body>
 </html>
