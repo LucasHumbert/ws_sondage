@@ -10,7 +10,7 @@ let sondageContainer = document.getElementById('sondage_container')
 let backBtn = document.getElementById('back_btn')
 let sondageContent = document.getElementById('sondage_content')
 let sondageResultats = document.getElementById('sondage_resultats')
-
+let organisateurForm = document.getElementById('organisateur_form')
 
 button.addEventListener('click', () => {
     socket.emit('user connexion', input.value)
@@ -65,10 +65,10 @@ socket.on('question to players', (question, sondageId) => {
         <br />
         ${question.question}
         <br />
-
         <button id="reponse_1_btn">${question.reponse1.libelle}</button>
         <button id="reponse_2_btn">${question.reponse2.libelle}</button>
     `
+    sondageContent.style.display = 'block'
 
     document.getElementById('reponse_1_btn').addEventListener('click', () => {
         envoyerReponse(sondageId, 1)
@@ -77,6 +77,26 @@ socket.on('question to players', (question, sondageId) => {
     document.getElementById('reponse_2_btn').addEventListener('click', () => {
         envoyerReponse(sondageId, 2)
     })
+})
+
+socket.on('send resultats', (question) => {
+    sondageResultats.innerHTML = `
+        Résultat question: ${question.question}
+        <br />
+        ${question.reponse1.libelle}: ${question.reponse1.nbVotes}
+        <br />
+        ${question.reponse2.libelle}: ${question.reponse2.nbVotes}
+    `
+    sondageResultats.style.display = 'block'
+})
+
+socket.on('active question', (organisateurId) => {
+    organisateurForm.style.display = 'none'
+    sondageContent.style.display = 'none'
+
+    if (organisateurId === socket.id) {
+        sondageResultats.style.display = 'block'
+    }
 })
 
 function joinSondage(id, sondage) {
@@ -97,7 +117,9 @@ function joinSondage(id, sondage) {
         afficherSondageForm(id)
     } else {
         sondageContent.innerText = 'En attente de l\'organisateur...'
+        sondageContent.style.display = 'block'
     }
+
 }
 
 function leaveSondage() {
@@ -106,6 +128,10 @@ function leaveSondage() {
     sondageContainer.style.display = 'none'
     sondageList.style.display = 'block'
     createForm.style.display = 'block'
+    sondageResultats.style.display = 'none'
+    organisateurForm.style.display = 'none'
+    sondageContent.style.display = 'none'
+    activeQuestion = false
 }
 
 function createSondage() {
@@ -119,16 +145,34 @@ function createSondage() {
 }
 
 function afficherSondageForm(idSondage) {
-    document.getElementById('organisateur_form').style.display = 'block'
+    organisateurForm.style.display = 'block'
+    organisateurForm.innerHTML = `
+        <label for="organisateur_question">Question:</label>
+        <input type="text" id="organisateur_question">
+        <br />
+        <label for="reponse_1_input">Réponse possible 1</label><input type="text" id="reponse_1_input">
+        <br />
+        <label for="reponse_2_input">Réponse possible 2</label><input type="text" id="reponse_2_input">
+        <br />
+
+        <button type="button" id="organisateur_btn">Valider</button>
+    `
+    let question = document.getElementById('organisateur_question')
+    let reponse1 = document.getElementById('reponse_1_input')
+    let reponse2 = document.getElementById('reponse_2_input')
+
+    question.value = ''
+    reponse1.value = ''
+    reponse2.value = ''
 
     document.getElementById('organisateur_btn').addEventListener('click', () => {
-        let question = document.getElementById('organisateur_question').value
-        let reponse1 = document.getElementById('reponse_1_input').value
-        let reponse2 = document.getElementById('reponse_2_input').value
+        socket.emit('org create question', idSondage, question.value, reponse1.value, reponse2.value)
 
-        socket.emit('org create question', idSondage, question, reponse1, reponse2)
+        question.value = ''
+        reponse1.value = ''
+        reponse2.value = ''
 
-        document.getElementById('organisateur_form').style.display = 'none'
+        organisateurForm.style.display = 'none'
         sondageResultats.style.display = 'block'
         sondageResultats.innerText = 'En attente des votes...'
     })
@@ -137,4 +181,5 @@ function afficherSondageForm(idSondage) {
 function envoyerReponse(idSondage, reponse) {
     socket.emit('player response', idSondage, reponse)
     sondageContent.innerText= ''
+    sondageContent.style.display = 'none'
 }

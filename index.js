@@ -51,7 +51,8 @@ io.on('connection', (socket) => {
         let activeQuestion = getSondageActiveQuestion(id)
 
         if (activeQuestion) {
-            isOrganisateur ? sendQuestion('non') : sendQuestion(activeQuestion)// TODO remplacer par envoyer les résultats
+            socket.emit('active question', sondages[currentSondageId].organisateur.id)
+            isOrganisateur ? sendResultatsToOrga(currentSondageId) : sendQuestion(activeQuestion)
         }
     })
 
@@ -113,7 +114,7 @@ io.on('connection', (socket) => {
                 sondages[idSondage].questions[question.id].reponse2.nbVotes += 1
             }
 
-            sendResultats(idSondage)
+            sendResultatsToAll(idSondage)
         }
     })
 
@@ -167,16 +168,22 @@ io.on('connection', (socket) => {
         return Object.entries(result).length ? result : null
     }
 
-    function sendResultats(idSondage) {
+    function sendResultatsToAll(idSondage) {
         let question = getSondageActiveQuestion(idSondage)
 
         if (question) {
-            console.log(sondages[idSondage].questions[question.id].reponse1.nbVotes)
+            io.to(currentSondageId).emit('send resultats', question)
+        }
+    }
+
+    function sendResultatsToOrga(idSondage) {
+        let question = getSondageActiveQuestion(idSondage)
+
+        if (question) {
+            socket.emit('send resultats', question)
         }
     }
 })
-
-
 
 server.listen(3000, () => {
     console.log('server running at http://localhost:3000');
