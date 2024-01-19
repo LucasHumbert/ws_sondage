@@ -24,7 +24,7 @@ function cacherPseudoForm() {
 }
 
 function afficherSondageListe(sondages) {
-    if (document.getElementById('pseudo_form')) {
+    if (document.getElementById('pseudo_form') || document.getElementById('sondage_name')) {
         return
     }
 
