@@ -32,7 +32,8 @@ io.on('connection', (socket) => {
         if (users[socket.id]) {
             delete users[socket.id]
             sendConnectedUsersToAll()
-            sendSondageListToAll()
+            let isOrganisateur = sondages[currentSondageId] ? sondages[currentSondageId].organisateur.id === socket.id : false
+            sendSondageListToAll(isOrganisateur)
         }
     })
 
@@ -51,8 +52,7 @@ io.on('connection', (socket) => {
         let activeQuestion = getSondageActiveQuestion(id)
 
         if (activeQuestion) {
-            socket.emit('active question', sondages[currentSondageId].organisateur.id)
-            isOrganisateur ? sendResultatsToOrga(currentSondageId) : sendQuestion(activeQuestion)
+            socket.emit('active question', sondages[currentSondageId].organisateur.id, activeQuestion, currentSondageId)
         }
     })
 
@@ -96,7 +96,8 @@ io.on('connection', (socket) => {
                     libelle: reponse2,
                     nbVotes: 0
                 },
-                active: true
+                active: true,
+                votants: []
             }
             sondage.questions[newId] = newQuestion
 
@@ -114,6 +115,8 @@ io.on('connection', (socket) => {
                 sondages[idSondage].questions[question.id].reponse2.nbVotes += 1
             }
 
+            sondages[idSondage].questions[question.id].votants.push(socket.id)
+
             sendResultatsToAll(idSondage)
         }
     })
@@ -126,8 +129,8 @@ io.on('connection', (socket) => {
         socket.emit('get sondages list', getActiveSondages())
     }
 
-    function sendSondageListToAll() {
-        io.emit('get sondages list', getActiveSondages())
+    function sendSondageListToAll(isOrgDisconnect = false) {
+        io.emit('get sondages list', getActiveSondages(), isOrgDisconnect)
     }
 
     function getActiveSondages() {
@@ -151,10 +154,6 @@ io.on('connection', (socket) => {
         socket.broadcast.to(currentSondageId).emit("question to players", question, currentSondageId);
     }
 
-    function sendQuestion(question) {
-        socket.emit("question to players", question, currentSondageId);
-    }
-
     function getSondageActiveQuestion(idSondage) {
         let result = {}
         for (const [id, question] of Object.entries(sondages[idSondage].questions)) {
@@ -173,14 +172,6 @@ io.on('connection', (socket) => {
 
         if (question) {
             io.to(currentSondageId).emit('send resultats', question)
-        }
-    }
-
-    function sendResultatsToOrga(idSondage) {
-        let question = getSondageActiveQuestion(idSondage)
-
-        if (question) {
-            socket.emit('send resultats', question)
         }
     }
 })
